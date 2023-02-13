@@ -1,10 +1,6 @@
 from selene import have
 
 
-class Checkbox:
-
-    def __init__(self, element):
-        self.element = element
-
-    def select(self, by_texts):
-        self.element.element_by(have.text(by_texts)).click()
+def checkboxes_click(elements, *by_texts):
+    for value in by_texts:
+        elements.element_by(have.text(value)).click()

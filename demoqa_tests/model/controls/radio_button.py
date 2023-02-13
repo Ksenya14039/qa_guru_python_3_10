@@ -1,10 +1,5 @@
 from selene import have
 
 
-class Radio:
-
-    def __init__(self, element):
-        self.element = element
-
-    def select_by_value(self, text):
-        self.element.element_by(have.value(text)).element('..').click()
+def set_value(elements, text):
+    elements.element_by(have.value(text)).element('..').click()

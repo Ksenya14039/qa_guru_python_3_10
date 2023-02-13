@@ -1,91 +1,54 @@
-from selene import have, command
+from selene import have
 from selene.support.shared import browser
-from demoqa_tests.model.controls.check_boxes import Checkbox
-from demoqa_tests.model.controls.date_picker import Datepicker
-from demoqa_tests.model.controls.drop_down import Dropdown
-from demoqa_tests.model.controls.radio_button import Radio
-from demoqa_tests.utils import path_to_file, date_config
+
+from demoqa_tests.model.controls import drop_down, radio_button, check_boxes, date_picker
+from demoqa_tests.utils import path_to_file
 
 
-class PracticeForm:
-    def __init__(self, user):
-        self.user = user
+def open_page():
+    browser.open('/automation-practice-form')
 
-    def open_page(self):
-        browser.open('/automation-practice-form')
-        ads = browser.all('[id^=google_ads_][id$=container__]')
-        if ads.wait.until(have.size_greater_than_or_equal(3)):
-            ads.perform(command.js.remove)
 
-    def fill_name(self):
-        browser.element('#firstName').type(self.user.first_name)
-        browser.element('#lastName').type(self.user.last_name)
+def input_info(*, name, surname, email, mobile, address):
+    browser.element('#firstName').type(name)
+    browser.element('#lastName').type(surname)
+    browser.element('#userEmail').type(email)
+    browser.element('#userNumber').type(mobile)
+    browser.element('#currentAddress').type(address)
 
-    def fill_contacts(self):
-        browser.element('#userEmail').type(self.user.email)
-        browser.element('#userNumber').type(self.user.phone)
 
-    def select_gender(self):
-        gender = Radio(browser.all('[name=gender]'))
-        gender.select_by_value(self.user.gender)
+def select_gender(gender):
+    radio_button.select_by_value(browser.all('[name=gender]'), gender)
 
-    def select_birthday(self):
-        birthday_datepicker = Datepicker(browser.element('#dateOfBirthInput'))
-        birthday_datepicker.set_date(self.user.birthday)
 
-    def input_subject(self):
-        browser.element('#subjectsInput').type(self.user.subject).press_enter()
+def select_birthday(*, month, year, day):
+    browser.element('#dateOfBirthInput').click()
+    date_picker.select_date(month, year, day)
 
-    def scroll_to_bottom(self):
-        browser.element('#state').perform(command.js.scroll_into_view)
 
-    def select_hobbies(self):
-        check_hobbies = Checkbox(browser.all('[for^=hobbies-checkbox]'))
-        check_hobbies.select(self.user.hobbies)
+def input_subject(subject):
+    browser.element('#subjectsInput').type(subject).press_enter()
 
-    def upload_image(self):
-        relative_path = 'resources/wepk.jpeg'
-        path = path_to_file.create_path(relative_path)
-        browser.element('#uploadPicture').set_value(path)
 
-    def input_address(self):
-        browser.element('#currentAddress').type(self.user.address)
+def select_hobbies(*texts):
+    check_boxes.select(browser.all('[for^=hobbies-checkbox]'), *texts)
 
-    def select_state(self):
-        dropdown = Dropdown('#state')
-        dropdown.select(self.user.state)
 
-    def select_city(self):
-        dropdown = Dropdown('#city')
-        dropdown.select(self.user.city)
+def upload_picture(path_to_picture):
+    path_to_file.create_path('#uploadPicture', path_to_picture)
 
-    def submit(self):
-        browser.element('#submit').press_enter()
 
-    def submit_form(self):
-        self.open_page()
-        self.fill_name()
-        self.fill_contacts()
-        self.select_gender()
-        self.select_birthday()
-        self.input_subject()
-        self.scroll_to_bottom()
-        self.select_hobbies()
-        self.upload_image()
-        self.input_address()
-        self.select_state()
-        self.select_city()
-        self.submit()
+def select_state(value):
+    drop_down.select('#state', by_text=value)
 
-    def should_have_submitted(self):
-        browser.element('.table').all('td').even.should(have.texts(
-            self.user.first_name + ' ' + self.user.last_name,
-            self.user.email,
-            self.user.gender,
-            self.user.phone,
-            self.user.birthday.strftime(date_config.datetime_view_format),
-            self.user.subject,
-            self.user.hobbies,
-            self.user.image,
-            self.user.address,
-            self.user.state + ' ' + self.user.city))
+
+def select_city(value):
+    drop_down.select('#city', by_text=value)
+
+
+def submit():
+    browser.element('#submit').press_enter()
+
+
+def assert_of_registered_user(*args):
+    browser.element('.table').all('td').even.should(have.texts(args))
